@@ -15,9 +15,11 @@ struct LEDString {
 
   uint8_t animationAt(uint8_t progress8) {
     uint8_t offsetProgress = progress8 + offset;
-    // Start at 0, go up to 255, then back down to 0.
-    uint8_t animationValue = 255 - cos8(offsetProgress);
-    return animationValue;
+    if (offsetProgress < 128) {
+      // Start at 0, go up to 255, then back down to 0.
+      return 255 - cos8(offsetProgress * 2);
+    }
+    return 0;
   }
 };
 
@@ -30,8 +32,13 @@ LEDString ledStrings[6] = {
   { .pin = 11, .offset = (uint8_t)(255.0 * 5.0 / 6.0) },
 };
 
+// Sometimes I only need a couple of the strips
+// This provides a convenient obviously-named way to change that.
+// Anything more complex, just change the ledStrings items.
+#define MAX_STRIP_TO_ANIMATE 6
+
 void setup() {
-  for (int i = 0; i < 6; ++i) {
+  for (int i = 0; i < MAX_STRIP_TO_ANIMATE; ++i) {
     pinMode(ledStrings[i].pin, OUTPUT);
   }
 }
@@ -44,8 +51,8 @@ uint8_t gammaCorrect(uint8_t value) {
 }
 
 void loop() {
-  delay(5);
-  for (int i = 0; i < 6; ++i) {
+  delay(15);
+  for (int i = 0; i < MAX_STRIP_TO_ANIMATE; ++i) {
     analogWrite(ledStrings[i].pin, gammaCorrect(ledStrings[i].animationAt(brightness)));
   }
   brightness += brightnessIncrement;
